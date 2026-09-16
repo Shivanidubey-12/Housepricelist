@@ -1,55 +1,27 @@
-```python
-import os
 import pandas as pd
+import numpy as np
 import xgboost as xgb
 import streamlit as st
-
-
-# Page configuration
-st.set_page_config(
-    page_title="House Price Prediction",
-    page_icon="🏠"
-)
-
-
-# Load trained model
-@st.cache_resource
-def load_model():
-
-    # Get the folder where this Python file is located
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-
-    # Model file path
-    model_path = os.path.join(
-        base_dir,
-        "xgb_house_model.json"
-    )
-
-    # Check whether model exists
-    if not os.path.exists(model_path):
-        st.error("❌ xgb_house_model.json file not found!")
-        st.info(
-            "Please keep xgb_house_model.json "
-            "in the same folder as House_price_prediction.py."
-        )
-        st.stop()
-
-    model = xgb.XGBRegressor()
-    model.load_model(model_path)
-
-    return model
+import os
 
 
 def main():
 
-    st.title("🏠 House Price Prediction")
+    # Page title
+    st.title(" House Price Prediction")
 
-    st.write(
-        "This app will help you predict the house price."
+    st.write("This app will help you predict the house price.")
+
+    # Load trained model
+    model = xgb.XGBRegressor()
+
+    # Get the folder where this Python file is located
+    model_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "xgb_model.json"
     )
 
-    # Load model
-    model = load_model()
+    model.load_model(model_path)
 
     # User inputs
     bedrooms = st.number_input(
@@ -97,7 +69,10 @@ def main():
         ("No", "Yes")
     )
 
-    waterfront_value = 0 if waterfront == "No" else 1
+    if waterfront == "No":
+        waterfront_value = 0
+    else:
+        waterfront_value = 1
 
     condition = st.slider(
         "House Condition",
@@ -118,7 +93,7 @@ def main():
     current_year = 2026
     age = current_year - year_built
 
-    # Create DataFrame
+    # Create dataframe
     data_new = pd.DataFrame({
         "bedrooms": [bedrooms],
         "bathrooms": [bathrooms],
@@ -131,101 +106,20 @@ def main():
     })
 
     # Prediction
-    if st.button("🔮 Predict House Price"):
+    if st.button("Predict House Price"):
 
-        try:
+        prediction = model.predict(data_new)
 
-            prediction = model.predict(data_new)
+        st.success(
+            "Estimated House Price: ₹ {:.2f} Lakhs".format(prediction[0])
+        )
 
-            st.success(
-                "Estimated House Price: ₹ {:.2f} Lakhs".format(
-                    prediction[0]
-                )
-            )
-
-        except Exception as e:
-
-            st.error("❌ Prediction failed.")
-            st.error(str(e))
+    # Project URL
+    st.markdown("---")
+    st.markdown(
+        "🔗 **Project:** [House Price Prediction App](https://streamlit.io/)"
+    )
 
 
 if __name__ == "__main__":
     main()
-```
-
-### VERY IMPORTANT: Check your folder
-
-Go to:
-
-```text
-C:\Users\dsaty\Desktop\ML project\Project 3. House_price_predication\
-```
-
-You need to have:
-
-```text
-Project 3. House_price_predication
-│
-├── House_price_prediction.py
-├── xgb_house_model.json    ← MUST BE HERE
-└── requirements.txt
-```
-
-### Check using PowerShell
-
-Run:
-
-```powershell
-cd "C:\Users\dsaty\Desktop\ML project\Project 3. House_price_predication"
-```
-
-Then:
-
-```powershell
-dir
-```
-
-You should see:
-
-```text
-House_price_prediction.py
-xgb_house_model.json
-requirements.txt
-```
-
-If you **don't see `xgb_house_model.json`**, that's exactly why you're getting this error.
-
-Then run:
-
-```powershell
-streamlit run House_price_prediction.py
-```
-
-### For GitHub/Streamlit deployment
-
-Your GitHub repository should also have:
-
-```text
-House_price_prediction.py
-xgb_house_model.json
-requirements.txt
-```
-
-The model filename must be **exactly**:
-
-```text
-xgb_house_model.json
-```
-
-Not:
-
-```text
-xgb_house_model (1).json
-xgb_house_model.json.json
-XGB_house_model.json
-xgb_house_model.JSON
-```
-
-Your original code confirms that the model is expected to be loaded from `xgb_house_model.json`.
-
-**If you have the model file somewhere else on your laptop, send/upload `xgb_house_model.json` here. I can check it and tell you exactly where to put it and whether your model is compatible with this code.**
