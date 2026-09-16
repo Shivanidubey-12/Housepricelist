@@ -5,25 +5,34 @@ import xgboost as xgb
 import streamlit as st
 
 
-# -----------------------------
-# Page Configuration
-# -----------------------------
+# Page configuration
 st.set_page_config(
     page_title="House Price Prediction",
-    page_icon="🏠",
-    layout="centered"
+    page_icon="🏠"
 )
 
 
-# -----------------------------
-# Load Model
-# -----------------------------
+# Load trained model
 @st.cache_resource
 def load_model():
+
+    # Get the folder where this Python file is located
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Model file path
     model_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
+        base_dir,
         "xgb_house_model.json"
     )
+
+    # Check whether model exists
+    if not os.path.exists(model_path):
+        st.error("❌ xgb_house_model.json file not found!")
+        st.info(
+            "Please keep xgb_house_model.json "
+            "in the same folder as House_price_prediction.py."
+        )
+        st.stop()
 
     model = xgb.XGBRegressor()
     model.load_model(model_path)
@@ -31,33 +40,18 @@ def load_model():
     return model
 
 
-# -----------------------------
-# Main App
-# -----------------------------
 def main():
 
     st.title("🏠 House Price Prediction")
 
     st.write(
-        "Enter the house details below to predict the estimated house price."
+        "This app will help you predict the house price."
     )
 
-    # Load trained model
-    try:
-        model = load_model()
-    except Exception as e:
-        st.error("Model file could not be loaded.")
-        st.error(f"Error: {e}")
-        st.info(
-            "Make sure xgb_house_model.json is uploaded "
-            "to the same GitHub folder as this Python file."
-        )
-        st.stop()
+    # Load model
+    model = load_model()
 
-    # -----------------------------
-    # User Inputs
-    # -----------------------------
-
+    # User inputs
     bedrooms = st.number_input(
         "Number of Bedrooms",
         min_value=1,
@@ -124,10 +118,7 @@ def main():
     current_year = 2026
     age = current_year - year_built
 
-    # -----------------------------
-    # Create Input DataFrame
-    # -----------------------------
-
+    # Create DataFrame
     data_new = pd.DataFrame({
         "bedrooms": [bedrooms],
         "bathrooms": [bathrooms],
@@ -139,81 +130,102 @@ def main():
         "age": [age]
     })
 
-    # -----------------------------
     # Prediction
-    # -----------------------------
-
-    if st.button("🔮 Predict House Price", use_container_width=True):
+    if st.button("🔮 Predict House Price"):
 
         try:
+
             prediction = model.predict(data_new)
 
-            price = prediction[0]
-
             st.success(
-                f"Estimated House Price: ₹ {price:.2f} Lakhs"
+                "Estimated House Price: ₹ {:.2f} Lakhs".format(
+                    prediction[0]
+                )
             )
 
         except Exception as e:
-            st.error("Prediction failed.")
-            st.error(f"Error: {e}")
 
+            st.error("❌ Prediction failed.")
+            st.error(str(e))
 
-# -----------------------------
-# Run Application
-# -----------------------------
 
 if __name__ == "__main__":
     main()
 ```
 
-### Your GitHub folder should be
+### VERY IMPORTANT: Check your folder
+
+Go to:
 
 ```text
-House-Price-Prediction
+C:\Users\dsaty\Desktop\ML project\Project 3. House_price_predication\
+```
+
+You need to have:
+
+```text
+Project 3. House_price_predication
 │
 ├── House_price_prediction.py
-├── xgb_house_model.json
-├── requirements.txt
-└── README.md
+├── xgb_house_model.json    ← MUST BE HERE
+└── requirements.txt
 ```
 
-### `requirements.txt`
-
-```text
-streamlit
-pandas
-xgboost
-```
-
-You don't actually use NumPy directly in the revised code, so I've removed it from the requirements.
-
-### Before deploying, test it
-
-In PowerShell:
-
-```powershell
-cd "C:\Users\dsaty\Desktop\ML project"
-```
-
-Install:
-
-```powershell
-pip install -r requirements.txt
-```
+### Check using PowerShell
 
 Run:
+
+```powershell
+cd "C:\Users\dsaty\Desktop\ML project\Project 3. House_price_predication"
+```
+
+Then:
+
+```powershell
+dir
+```
+
+You should see:
+
+```text
+House_price_prediction.py
+xgb_house_model.json
+requirements.txt
+```
+
+If you **don't see `xgb_house_model.json`**, that's exactly why you're getting this error.
+
+Then run:
 
 ```powershell
 streamlit run House_price_prediction.py
 ```
 
-If your file is actually named `House_price_predication.py` (with **predication**), use:
+### For GitHub/Streamlit deployment
 
-```powershell
-streamlit run House_price_predication.py
+Your GitHub repository should also have:
+
+```text
+House_price_prediction.py
+xgb_house_model.json
+requirements.txt
 ```
 
-**Important:** Keep the Python filename and the Streamlit deployment **Main file path** exactly the same.
+The model filename must be **exactly**:
 
+```text
+xgb_house_model.json
+```
 
+Not:
+
+```text
+xgb_house_model (1).json
+xgb_house_model.json.json
+XGB_house_model.json
+xgb_house_model.JSON
+```
+
+Your original code confirms that the model is expected to be loaded from `xgb_house_model.json`.
+
+**If you have the model file somewhere else on your laptop, send/upload `xgb_house_model.json` here. I can check it and tell you exactly where to put it and whether your model is compatible with this code.**
